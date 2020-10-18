@@ -19,16 +19,7 @@ class GraphTest {
     @Test
     @Description("Average latency between <from> and <to>")
     void testAverageLatency() {
-        Graph graph = new Graph();
-        graph.addEdge("A", "B", 5);
-        graph.addEdge("B", "C", 4);
-        graph.addEdge("C", "D", 8);
-        graph.addEdge("D", "C", 8);
-        graph.addEdge("D", "E", 6);
-        graph.addEdge("A", "D", 5);
-        graph.addEdge("C", "E", 2);
-        graph.addEdge("E", "B", 3);
-        graph.addEdge("A", "E", 7);
+        Graph graph = getGraph();
 
         String latency = graph.getAverageLatency("A-B-C");
         assertEquals("9", latency);
@@ -44,37 +35,13 @@ class GraphTest {
 
         latency = graph.getAverageLatency("A-E-D");
         assertEquals("NO SUCH TRACE", latency);
-
-        graph = new Graph();
-        graph.addEdge("A", "B", 5);
-        graph.addEdge("A", "B", 6);
-        graph.addEdge("A", "B", 7);
-        graph.addEdge("A", "B", 8);
-        graph.addEdge("A", "B", 4);
-        graph.addEdge("A", "D", 5);
-        graph.addEdge("B", "C", 4);
-        latency = graph.getAverageLatency("A-B-C");
-        assertEquals("10", latency);
-
-        graph.addEdge("B", "C", 5);
-        graph.addEdge("B", "C", 6);
-        latency = graph.getAverageLatency("A-B-C");
-        assertEquals("11", latency);
     }
 
     @Test
     @Description("Number of traces with stops less than <number>")
     void testTracesNumberMaxStops() {
-        Graph graph = new Graph();
-        graph.addEdge("A", "B", 5);
-        graph.addEdge("B", "C", 4);
-        graph.addEdge("C", "D", 8);
-        graph.addEdge("D", "C", 8);
-        graph.addEdge("D", "E", 6);
-        graph.addEdge("A", "D", 5);
-        graph.addEdge("C", "E", 2);
-        graph.addEdge("E", "B", 3);
-        graph.addEdge("A", "E", 7);
+        Graph graph = getGraph();
+
         Integer stops = graph.getTracesByStops("C", "C", 3, Condition.MAX_STOPS);
         assertEquals(2, stops);
     }
@@ -82,16 +49,7 @@ class GraphTest {
     @Test
     @Description("Number of traces with stops exactly <number>")
     void testTracesNumberExactStops() {
-        Graph graph = new Graph();
-        graph.addEdge("A", "B", 5);
-        graph.addEdge("B", "C", 4);
-        graph.addEdge("C", "D", 8);
-        graph.addEdge("D", "C", 8);
-        graph.addEdge("D", "E", 6);
-        graph.addEdge("A", "D", 5);
-        graph.addEdge("C", "E", 2);
-        graph.addEdge("E", "B", 3);
-        graph.addEdge("A", "E", 7);
+        Graph graph = getGraph();
 
         Integer stops = graph.getTracesByStops("A", "C", 4, Condition.EXACT_STOPS);
         assertEquals(3, stops);
@@ -100,16 +58,7 @@ class GraphTest {
     @Test
     @Description("Shortest traces in terms of latency between <from> and <to>")
     void testShortestTraces() {
-        Graph graph = new Graph();
-        graph.addEdge("A", "B", 5);
-        graph.addEdge("B", "C", 4);
-        graph.addEdge("C", "D", 8);
-        graph.addEdge("D", "C", 8);
-        graph.addEdge("D", "E", 6);
-        graph.addEdge("A", "D", 5);
-        graph.addEdge("C", "E", 2);
-        graph.addEdge("E", "B", 3);
-        graph.addEdge("A", "E", 7);
+        Graph graph = getGraph();
         Integer length = graph.getShortestTrace("A", "C");
         assertEquals(9, length);
 
@@ -129,6 +78,13 @@ class GraphTest {
     @Test
     @Description("Traces with average latency smaller than <number>")
     void testTracesShorterThan() {
+        Graph graph = getGraph();
+
+        Integer length = graph.getShortestTraces("C", "C", 30);
+        assertEquals(7, length);
+    }
+
+    private static Graph getGraph() {
         Graph graph = new Graph();
         graph.addEdge("A", "B", 5);
         graph.addEdge("B", "C", 4);
@@ -139,7 +95,6 @@ class GraphTest {
         graph.addEdge("C", "E", 2);
         graph.addEdge("E", "B", 3);
         graph.addEdge("A", "E", 7);
-        Integer length = graph.getShortestTraces("C", "C", 30);
-        assertEquals(7, length);
+        return graph;
     }
 }

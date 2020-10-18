@@ -1,12 +1,7 @@
 package ua.olena.tracing.graph;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
@@ -22,9 +17,6 @@ public class Graph {
     private static final String ERROR_MSG = "NO SUCH TRACE";
     private Map<String, Vertex> vertexes = new HashMap<>();
     private Map<String, Edge> edges = new HashMap<>();
-    //1h is just to optimize, normally belongs to a configuration
-    private final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofHours(1));
-    private Cache<String, Integer> avgLatencyCache = cacheBuilder.build();
 
     public void addEdge(String from, String to, Integer latency) {
         Vertex vertexFrom = vertexes.getOrDefault(from, new Vertex(from));
@@ -33,11 +25,7 @@ public class Graph {
         vertexes.putIfAbsent(from, vertexFrom);
         vertexes.putIfAbsent(to, vertexTo);
 
-        Edge edge = edges.getOrDefault(from + to, new Edge(from + to));
-        edge.getLatencies().add(latency);
-        edges.putIfAbsent(from + to, edge);
-
-        resetCache(edge.getKey());
+        edges.putIfAbsent(from + to, new Edge(from + to, latency));
     }
 
     /**
@@ -56,8 +44,7 @@ public class Graph {
 
             Edge edge = edges.get(from + to);
             if (edge != null) {
-                int average = getAverageFromCacheOrCalculate(edge);
-                latency = latency + average;
+                latency = latency + edge.getLatency();
             } else {
                 return ERROR_MSG;
             }
@@ -218,18 +205,13 @@ public class Graph {
         while (!queue.isEmpty()) {
             String to = queue.poll();
             Edge edge = edges.get(from + to);
-            int avg = getAverageFromCacheOrCalculate(edge);
 
-            average = average + avg;
+            average = average + edge.getLatency();
 
             from = to;
         }
 
         return average;
-    }
-
-    private int calculateAverage(List<Integer> latencies) {
-        return (int) latencies.stream().mapToDouble(Integer::doubleValue).average().orElse(Double.NaN);
     }
 
     private void pushNeighborsToStack(int depth, Stack<String> stack, Stack<Integer> depthStack, Map<String, Vertex> neighbors) {
@@ -245,22 +227,5 @@ public class Graph {
             return true;
         else return condition.equals(Condition.EXACT_STOPS) &&
                 node.equals(to) && depth == stops + 1;
-    }
-
-    private int getAverageFromCacheOrCalculate(Edge edge) {
-        if (edge.getLatencies().isEmpty()) {
-            throw new IllegalStateException("Mistake in the algorithm, please check the code");
-        }
-        Integer avg = avgLatencyCache.getIfPresent(edge.getKey());
-        if (avg == null) {
-            List<Integer> latencies = edge.getLatencies();
-            avg = calculateAverage(latencies);
-            avgLatencyCache.put(edge.getKey(), avg);
-        }
-        return avg;
-    }
-
-    private void resetCache(String edgeName) {
-        avgLatencyCache.invalidate(edgeName);
     }
 }

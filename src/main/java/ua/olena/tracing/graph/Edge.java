@@ -1,8 +1,5 @@
 package ua.olena.tracing.graph;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Represents connections between services with their latencies.
  *
@@ -11,17 +8,19 @@ import java.util.List;
  */
 class Edge {
     private String key;
-    private List<Integer> latencies = new ArrayList<>();
+    private int latency;
 
-    Edge(String key) {
+    public Edge(String key, int latency) {
         this.key = key;
+        this.latency = latency;
     }
 
-    String getKey() {
+    public String getKey() {
         return key;
     }
 
-    List<Integer> getLatencies() {
-        return latencies;
+    public int getLatency() {
+        return latency;
     }
 }
+
